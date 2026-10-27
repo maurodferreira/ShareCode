@@ -1,0 +1,10 @@
+{
+  "name": "ShareCode — Anywhere Studio",
+  "short_name": "ShareCode",
+  "description": "Controle privado do OpenCode e rascunhos de viagem",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080d17",
+  "theme_color": "#0c1321"
+}
