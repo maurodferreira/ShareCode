@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createAuth } from './auth.mjs';
 import { createOpencode } from './opencode.mjs';
+import { createDesktopChannel } from './desktop.mjs';
 
 const root = fileURLToPath(new URL('../public/', import.meta.url));
 const assets = new Map([
@@ -11,6 +12,8 @@ const assets = new Map([
   ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
   ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
+  ['/desktop.js', ['desktop.js', 'text/javascript; charset=utf-8']],
+  ['/mobile.css', ['mobile.css', 'text/css; charset=utf-8']],
   ['/sw.js', ['sw.js', 'text/javascript; charset=utf-8']],
   ['/manifest.webmanifest', ['manifest.webmanifest', 'application/manifest+json; charset=utf-8']]
 ]);
@@ -55,6 +58,7 @@ function validHost(req, externalOrigin) {
 }
 export function startServer(env = process.env, opts = {}) {
   const auth = createAuth(env.SHARECODE_PASSWORD);
+  const desktop = createDesktopChannel();
   const opencode = opts.opencode ?? createOpencode(env);
   const publicOrigin = env.SHARECODE_PUBLIC_ORIGIN?.replace(/\/$/, '') || null;
   if (publicOrigin && (new URL(publicOrigin).protocol !== 'https:' || new URL(publicOrigin).pathname !== '/')) {
@@ -88,6 +92,11 @@ export function startServer(env = process.env, opts = {}) {
       }
       if (pathname.startsWith('/api/')) {
         if (!auth.isAuthenticated(req.headers.cookie)) return json(res, 401, { error: 'Faça login.' });
+        if (pathname.startsWith('/api/desktop/')) {
+          const handled = await desktop.handle(req, res, pathname);
+          if (handled !== false) return;
+          return json(res, 404, { error: 'Rota inexistente.' });
+        }
         let data;
         if (pathname === '/api/system/status' && req.method === 'GET') data = await opencode.status();
         else if (pathname === '/api/projects' && req.method === 'GET') data = await opencode.projects();
