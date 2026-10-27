@@ -1,7 +1,8 @@
+import { initDesktop } from './desktop.js';
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const state = { authenticated: false, engine: false, sessions: [], selected: null, drafts: [], view: 'overview', fileName: null, refreshing: false };
-const displayNames = { overview: 'Visão geral', sessions: 'Sessões OpenCode', flight: 'Modo Voo', security: 'Segurança' };
+const displayNames = { overview: 'Visão geral', sessions: 'Sessões OpenCode', desktop: 'Meu PC', flight: 'Modo Voo', security: 'Segurança' };
 let toastTimer;
 const dateLabel = (value) => { try { return new Date(value).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); } catch { return ''; } };
 function toast(message) { const element = $('#toast'); element.textContent = message; element.style.display = 'block'; clearTimeout(toastTimer); toastTimer = setTimeout(() => { element.style.display = 'none'; }, 4000); }
@@ -22,6 +23,7 @@ function showView(view) {
   setText('#breadcrumb', displayNames[view]);
   if (view === 'sessions' && state.authenticated && navigator.onLine) loadSessions();
   if (view === 'flight') renderDrafts();
+  desktop.onView(view);
 }
 function unwrap(data) { return data?.data ?? data; }
 function asArray(data) {
@@ -101,6 +103,7 @@ async function loadSessions() {
 }
 async function selectSession(id) {
   state.selected = id;
+  $('#sessions-layout').classList.add('mobile-conversation');
   const active = state.sessions.find((s) => s.id === id);
   setText('#current-session-title', active?.title || 'Sessão');
   setText('#current-session-id', id);
@@ -185,6 +188,8 @@ function downloadFile(name, content, type = 'text/plain;charset=utf-8') {
   const anchor = document.createElement('a'); anchor.href = url; anchor.download = name; anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
+const desktop = initDesktop({ api, toast });
+$('#back-sessions').addEventListener('click', () => $('#sessions-layout').classList.remove('mobile-conversation'));
 $$('[data-view]').forEach((button) => button.addEventListener('click', () => showView(button.dataset.view)));
 $$('[data-goto]').forEach((button) => button.addEventListener('click', () => showView(button.dataset.goto)));
 $('#login-form').addEventListener('submit', async (event) => {

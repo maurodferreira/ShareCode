@@ -7,6 +7,7 @@
   <meta name="description" content="ShareCode: painel privado para suas sessões OpenCode e rascunhos offline." />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/mobile.css" />
   <title>ShareCode — Anywhere Studio</title>
   <script type="module" src="/app.js"></script>
 </head>
@@ -32,6 +33,7 @@
       <nav class="navigation" aria-label="Navegação principal">
         <button class="nav-item active" data-view="overview"><span>▦</span> Visão geral</button>
         <button class="nav-item" data-view="sessions"><span>◫</span> Sessões OpenCode</button>
+        <button class="nav-item" data-view="desktop"><span>▣</span> Meu PC</button>
         <button class="nav-item" data-view="flight"><span>✈</span> Modo Voo <small>OFFLINE</small></button>
         <button class="nav-item" data-view="security"><span>◇</span> Segurança</button>
       </nav>
@@ -54,6 +56,7 @@
             <article class="hero-card accent"><span class="card-icon">⌘</span><div class="eyebrow">MOTOR DE IA</div><h2>OpenCode V2</h2><p id="engine-description">Aguardando conexão com o serviço local.</p><button class="subtle-link" data-goto="sessions">Abrir sessões →</button></article>
             <article class="hero-card"><span class="card-icon">✈</span><div class="eyebrow">SEM INTERNET</div><h2>Modo Voo</h2><p>Rascunhos privados no dispositivo, edição de arquivos importados e exportação manual.</p><button class="subtle-link" data-goto="flight">Preparar viagem →</button></article>
           </div>
+          <div class="info-strip"><span>▣</span> <span>Quer acompanhar a tela do Windows? Acesse <button class="subtle-link" data-goto="desktop">Meu PC →</button> e escolha compartilhar manualmente.</span></div>
           <div class="section-heading"><h2>Central de controle</h2><span class="caption">Estado atual do ambiente</span></div>
           <div class="stat-grid"><div class="stat"><small>Conexão</small><strong id="stat-connection">—</strong><span>Rede e OpenCode</span></div><div class="stat"><small>Sessões</small><strong id="stat-sessions">—</strong><span>Encontradas no serviço</span></div><div class="stat"><small>Rascunhos</small><strong id="stat-drafts">—</strong><span>Guardados neste dispositivo</span></div></div>
           <div class="info-strip">ⓘ <span>O ShareCode não executa automaticamente comandos offline quando a conexão retorna. Você sempre revisa e confirma o envio.</span></div>
@@ -61,10 +64,29 @@
         <section class="view" data-screen="sessions" hidden>
           <div class="view-title"><div><div class="eyebrow">OPEN CODE WORKSPACE</div><h1>Sessões <em>ativas.</em></h1><p class="lead">Escolha uma sessão para acompanhar ou enviar instruções à IA.</p></div><button id="refresh-sessions" class="btn outline">↻ Atualizar</button></div>
           <div id="session-error" class="error" role="alert"></div>
-          <div class="sessions-layout">
+          <div id="sessions-layout" class="sessions-layout">
             <div class="session-list-panel"><div class="list-header">SUAS SESSÕES <span id="sessions-counter">0</span></div><div id="session-list" class="session-list"><div class="empty">Abra a conexão para carregar suas sessões.</div></div><form id="new-session-form" class="new-session"><input id="new-session-title" maxlength="120" placeholder="Nova sessão..." aria-label="Título da sessão" required /><button type="submit" title="Criar sessão" class="btn icon-button">+</button></form></div>
-            <div class="conversation"><div class="conversation-header"><div><h2 id="current-session-title">Selecione uma sessão</h2><small id="current-session-id">Mensagens carregadas do seu OpenCode local</small></div><span class="status-tag">OpenCode</span></div><div id="message-list" class="message-list"><div class="empty">As mensagens aparecerão aqui.</div></div><form id="prompt-form" class="prompt-area"><label for="prompt">Mensagem para o agente</label><textarea id="prompt" rows="3" maxlength="12000" placeholder="Descreva o que deseja implementar..." required></textarea><div class="prompt-footer"><small>O agente poderá usar ferramentas conforme as permissões do OpenCode.</small><div class="button-row"><button id="save-prompt" class="btn outline" type="button">Guardar offline</button><button id="send-prompt" class="btn primary" type="submit">Enviar ↑</button></div></div></form></div>
+            <div class="conversation"><div class="conversation-header"><button id="back-sessions" class="mobile-back" type="button" aria-label="Voltar para sessões">←</button><div><h2 id="current-session-title">Selecione uma sessão</h2><small id="current-session-id">Mensagens carregadas do seu OpenCode local</small></div><span class="status-tag">OpenCode</span></div><div id="message-list" class="message-list"><div class="empty">As mensagens aparecerão aqui.</div></div><form id="prompt-form" class="prompt-area"><label for="prompt">Mensagem para o agente</label><textarea id="prompt" rows="3" maxlength="12000" placeholder="Descreva o que deseja implementar..." required></textarea><div class="prompt-footer"><small>O agente poderá usar ferramentas conforme as permissões do OpenCode.</small><div class="button-row"><button id="save-prompt" class="btn outline" type="button">Guardar offline</button><button id="send-prompt" class="btn primary" type="submit">Enviar ↑</button></div></div></form></div>
           </div>
+        </section>
+        <section class="view" data-screen="desktop" hidden>
+          <div class="eyebrow">ACOMPANHE SEU WINDOWS</div><h1>Meu <em>PC.</em></h1>
+          <p class="lead">Veja a tela que você escolher compartilhar no computador. Para controlar mouse e teclado, use o app RustDesk com autenticação própria.</p>
+          <div class="desktop-tools">
+            <button id="desktop-start" class="btn primary" type="button">▣ Compartilhar minha tela</button>
+            <button id="desktop-stop" class="btn outline" type="button" hidden>■ Parar compartilhamento</button>
+            <button id="desktop-refresh" class="btn outline" type="button">↻ Atualizar imagem</button>
+          </div>
+          <div class="desktop-frame" aria-label="Visualização da tela compartilhada">
+            <img id="desktop-preview" alt="Imagem recente da tela compartilhada do computador" hidden />
+            <div id="desktop-placeholder" class="desktop-placeholder"><span class="screen-icon" aria-hidden="true">▣</span><strong>Nenhuma tela compartilhada</strong><span>No PC, abra esta aba e toque em Compartilhar minha tela. Você escolherá o monitor no navegador.</span></div>
+          </div>
+          <p id="desktop-status" class="desktop-status" role="status">Aguardando compartilhamento no computador</p>
+          <div class="desktop-panel-grid">
+            <article class="desktop-panel"><h2>Visualizar no iPhone</h2><ol><li>Inicie o compartilhamento pelo Chrome/Edge no PC.</li><li>Escolha um monitor e mantenha o PC ligado.</li><li>No iPhone, abra esta aba pela sua conexão Tailscale.</li></ol><p>A visualização é feita por imagens periódicas, sem áudio ou controle remoto.</p></article>
+            <article class="desktop-panel"><h2>Controlar como no Parsec</h2><p>Para mexer no Windows usando gestos, teclado e mouse, conecte pelo RustDesk para iOS. É um aplicativo separado, com permissões e senha próprias.</p><p><a href="https://rustdesk.com/" target="_blank" rel="noopener noreferrer">Instalar RustDesk (site oficial) ↗</a></p><p class="tiny">Configure acesso privado e autenticação antes de liberar controle. Não há controle remoto embutido nesta versão.</p></article>
+          </div>
+          <p class="desktop-note">Privacidade: a transmissão exige consentimento no PC. Qualquer aparelho que estiver conectado e autenticado neste ShareCode poderá visualizar as imagens enquanto estiver ativa. Termine o compartilhamento antes de abrir dados sensíveis.</p>
         </section>
         <section class="view" data-screen="flight" hidden>
           <div class="eyebrow">TRABALHE EM QUALQUER ALTITUDE</div><h1>Modo <em>Voo.</em></h1><p class="lead">Seu caderno offline. As alterações ficam neste dispositivo; nada será enviado automaticamente.</p>
@@ -79,7 +101,7 @@
         </section>
       </div>
     </main>
-    <nav class="bottom-nav" aria-label="Navegação mobile"><button data-view="overview" class="active">⌂ <span>Início</span></button><button data-view="sessions">◫ <span>Sessões</span></button><button data-view="flight">✈ <span>Voo</span></button><button data-view="security">◇ <span>Segurança</span></button></nav>
+    <nav class="bottom-nav" aria-label="Navegação mobile"><button data-view="overview" class="active">⌂ <span>Início</span></button><button data-view="sessions">◫ <span>Sessões</span></button><button data-view="desktop">▣ <span>Meu PC</span></button><button data-view="flight">✈ <span>Voo</span></button><button data-view="security">◇ <span>Segurança</span></button></nav>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
